@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-Banking</title>
+<link href="src/output.css" rel="stylesheet">
+    <style>
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .animate-fadeIn {
+        animation: fadeIn 0.2s ease-out;
+      }
+    </style>
+  </head>
+
+  <body
+    class="min-h-screen bg-gradient-to-br from-blue-900 via-slate-800 to-gray-900 text-white "
+  >
+   <div
+          class="p-8 bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg shadow-blue-500/30 text-center min-h"
+        >
+          <h1 class="text-2xl font-bold">E-Banking</h1>
+          <p class="text-gray-300 mt-2">Transaksi aman dan cepat</p>
+</div>
+    <!-- Header -->
+    <section class="flex flex-col md:flex items-center  gap-8 pl-5 p-5 ">
+
+      <div class="flex items-center flex-col gap-4 ">
+       
+
+        <!-- Box Saldo -->
+        <div
+          class="bg-white rounded-2xl shadow-lg p-6 w-80 text-center text-gray-700"
+        >
+          <h2 class="text-xl font-semibold mb-2">Saldo Anda</h2>
+          <div id="amount" class="text-3xl font-bold text-green-600 mb-4">
+            Rp 0
+          </div>
+        </div>
+
+        <!-- Tombol Menu -->
+        <div class="flex flex-col gap-4">
+          <!-- Tombol Menabung -->
+          <main
+            onclick="openModal('deposit')"
+            class="cursor-pointer bg-gray-700 w-72 p-4 rounded-lg flex items-center gap-4 hover:bg-gray-600 transition"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-8 h-8 text-green-500"
+            >
+              <polyline points="3 17 9 11 13 15 21 7" />
+              <polyline points="14 7 21 7 21 14" />
+            </svg>
+            <p class="text-lg font-medium">Menabung</p>
+          </main>
+
+          <!-- Tombol Menarik -->
+          <main
+            onclick="openModal('withdraw')"
+            class="cursor-pointer bg-gray-700 w-72 p-4 rounded-lg flex items-center gap-4 hover:bg-gray-600 transition"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-8 h-8 text-red-600"
+            >
+              <polyline points="3 7 9 13 13 9 21 17" />
+              <polyline points="21 10 21 17 14 17" />
+            </svg>
+            <p class="text-lg font-medium">Menarik</p>
+          </main>
+        </div>
+      </div>
+
+      <div class="mt-6  bg-white/10 p-4 rounded-xl backdrop-blur-md w-full max-w-4xl mx-auto overflow-x-auto ">
+        <div class=" flex flex-wrap items-center justify-center gap-5">
+          <h2 class="font-bold text-lg mb-2 text-center">
+            📜 Riwayat Transaksi
+          </h2>
+          <img
+            src="img/reverse-icon-1-removebg-preview.png"
+            alt="reverse icon"
+            onclick="hapus('reverse')"
+            class="w-10 h-10 border border-white/70 rounded-xl p-1 hover:scale-105 hover:border-white transition cursor-pointer"
+          />
+        </div>
+        <table
+          id="historyTable"
+          class="w-full mt-2 border text-sm border-gray-300 text-gray-100"
+        >
+          <thead>
+            <tr class="bg-gray-700 text-white">
+              <th class="p-2 border">Waktu</th>
+              <th class="p-2 border">Aksi</th>
+              <th class="p-2 border">Nominal</th>
+              <th class="p-2 border">Saldo Setelah</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr>
+              <td colspan="4" class="p-2 text-center text-gray-400">
+                Belum ada transaksi
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+    </section>
+    <!-- Modal -->
+    <div
+      id="modal"
+      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white text-gray-800 rounded-2xl p-6 w-80 shadow-xl animate-fadeIn"
+      >
+        <h2 id="modalTitle" class="text-xl font-semibold mb-4">Modal</h2>
+
+        <input
+          id="inputAmount"
+          type="number"
+          placeholder="Masukkan jumlah (Rp)"
+          class="w-full border border-gray-300 rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <div class="flex justify-end gap-3">
+          <button
+            onclick="closeModal()"
+            class="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 transition"
+          >
+            Batal
+          </button>
+          <button
+            id="confirmBtn"
+            onclick="confirmAction()"
+            class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+
+      let currentAction = "";
+
+      let balance = parseFloat (localStorage.getItem('saldo')) || 0;
+    
+
+    localStorage.setItem('saldo', balance);
+  
+      function updateDisplay() {
+        localStorage.setItem('saldo', balance)
+
+        document.getElementById("amount").textContent =
+          "Rp " + balance.toLocaleString("id-ID");
+         
+      }
+
+      // Buka modal
+      function openModal(action) {
+        currentAction = action;
+        const modal = document.getElementById("modal");
+        const input = document.getElementById("inputAmount");
+        const title = document.getElementById("modalTitle");
+        const confirmBtn = document.getElementById("confirmBtn");
+
+        input.value = "";
+        modal.classList.remove("hidden");
+        title.textContent =
+          action === "deposit" ? "Menabung Uang" : "Menarik Uang";
+
+        confirmBtn.classList.remove("bg-green-600", "bg-red-600");
+        if (action === "deposit") confirmBtn.classList.add("bg-green-600");
+        if (action === "withdraw") confirmBtn.classList.add("bg-red-600");
+        input.focus();
+      }
+
+      // Tutup modal
+      function closeModal() {
+        document.getElementById("modal").classList.add("hidden");
+      }
+
+      // Konfirmasi aksi
+      function confirmAction() {
+        const value = parseInt(document.getElementById("inputAmount").value);
+        if (isNaN(value) || value <= 0)
+          return alert("Masukkan nominal yang benar!");
+
+        const time = new Date().toLocaleString("id-ID", {
+          dateStyle: "short",
+          timeStyle: "medium",
+        });
+
+        if (currentAction === "deposit") {
+          balance += value;
+          addHistory(time, "Menabung", value, balance)
+          ;
+
+          
+        } else if (currentAction === "withdraw") {
+          if (balance >= value) {
+            balance -= value;
+            addHistory(time, "Menarik", value, balance)
+           
+
+            
+          } else {
+            return alert("Saldo tidak cukup!");
+          }
+        }
+
+        updateDisplay();
+        closeModal();
+      }
+
+      function hapus() {
+  const historyBody = document.getElementById('historyBody');
+  const data = JSON.parse(localStorage.getItem('riwayatTransaksi')) || [];
+
+  // 🔹 Cek apakah memang belum ada transaksi
+  if (data.length === 0) {
+    // Tampilkan notifikasi kecil
+    alert("YA HAHA MISKIN 😅");
+    return;
+  }
+
+  const konfirmasi = confirm("Yakin ingin menghapus semua riwayat transaksi?");
+  if (!konfirmasi) return;
+
+  // Hapus semua data transaksi
+  localStorage.removeItem('riwayatTransaksi');
+  history.length= 0;
+
+  historyBody.innerHTML = `
+    <tr>
+      <td colspan="4" class="p-2 text-center text-gray-400">Belum ada transaksi</td>
+    </tr>
+  `;
+
+  alert("Semua riwayat transaksi telah dihapus ✅");
+}
+
+       
+
+      // Tambahkan ke riwayat
+      
+
+      // Render tabel riwayat
+
+      // Ambil data dari localStorage saat pertama kali
+      let history = JSON.parse(localStorage.getItem("riwayatTransaksi")) || [];
+
+      // Fungsi untuk menambah transaksi
+      function addHistory(time, action, amount, newBalance) {
+        history.push({ time, action, amount, newBalance });
+
+        localStorage.setItem("riwayatTransaksi", JSON.stringify(history));
+        renderHistory();
+      }
+
+      // Fungsi untuk menampilkan tabel transaksi
+      function renderHistory() {
+        const tbody = document.getElementById("historyBody");
+        tbody.innerHTML = "";
+
+        history = JSON.parse(localStorage.getItem("riwayatTransaksi")) || [];
+
+        if (history.length === 0) {
+          tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="p-2 text-center text-gray-400">Belum ada transaksi</td>
+      </tr>
+    `;
+          return;
+        }
+        history
+          .slice()
+          .reverse()
+          .forEach((item) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+        <td class="p-2 border border-gray-600">${item.time}</td>
+        <td class="p-2 border border-gray-600 ${
+          item.action === "Menabung" ? "text-green-400" : "text-red-400"
+        }">${item.action}</td>
+        <td class="p-2 border border-gray-600">Rp ${item.amount.toLocaleString(
+          "id-ID"
+        )}</td>
+        <td class="p-2 border border-gray-600 font-medium">Rp ${item.newBalance.toLocaleString(
+          "id-ID"
+        )}</td>
+      `;
+            tbody.appendChild(row);
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", updateDisplay);
+
+      document.addEventListener("DOMContentLoaded", renderHistory);
+    </script>
+  </body>
+</html>
